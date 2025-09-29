@@ -1,0 +1,283 @@
+name: Build ffi Cross-Platform
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        triplet: [ x64-windows, arm64-windows ]
+        config: [ Release, Debug ]
+    steps:
+      - name: Checkout repository with submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Setup vcpkg
+        uses: lukka/get-cmake@latest
+        with:
+          cmakeVersion: "3.28"
+          ninjaVersion: "1.12.1"
+
+      - name: Cache vcpkg
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ github.workspace }}/vcpkg
+            ${{ github.workspace }}/vcpkg_installed
+          key: vcpkg-${{ matrix.triplet }}-${{ hashFiles('vcpkg.json') }}
+          restore-keys: vcpkg-${{ matrix.triplet }}-
+
+      - name: Setup vcpkg environment
+        run: |
+          if (-not (Test-Path ./vcpkg)) {
+            git clone https://github.com/microsoft/vcpkg.git
+            ./vcpkg/bootstrap-vcpkg.bat
+          }
+          echo "VCPKG_ROOT=${{ github.workspace }}/vcpkg" >> $env:GITHUB_ENV
+        shell: pwsh
+
+      - name: Configure CMake
+        run: |
+          cmake -B build-${{ matrix.triplet }}-${{ matrix.config }} `
+            -G Ninja `
+            -DCMAKE_TOOLCHAIN_FILE="${{ env.VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake" `
+            -DVCPKG_TARGET_TRIPLET=${{ matrix.triplet }} `
+            -DCMAKE_BUILD_TYPE=${{ matrix.config }} `
+            -DAG_TRIPLE=${{ matrix.triplet }}
+        shell: pwsh
+
+      - name: Build
+        run: cmake --build build-${{ matrix.triplet }}-${{ matrix.config }} --parallel
+        shell: pwsh
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ffi-${{ matrix.triplet }}-${{ matrix.config }}
+          path: |
+            build-${{ matrix.triplet }}-${{ matrix.config }}/out/**/*
+
+  build-linux:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        triplet: [ x64-linux, arm64-linux ]
+        config: [ Release, Debug ]
+    steps:
+      - name: Checkout repository with submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Setup vcpkg
+        uses: lukka/get-cmake@latest
+        with:
+          cmakeVersion: "3.28"
+          ninjaVersion: "1.12.1"
+
+      - name: Cache vcpkg
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ github.workspace }}/vcpkg
+            ${{ github.workspace }}/vcpkg_installed
+          key: vcpkg-${{ matrix.triplet }}-${{ hashFiles('vcpkg.json') }}
+          restore-keys: vcpkg-${{ matrix.triplet }}-
+
+      - name: Setup vcpkg environment
+        run: |
+          if [ ! -d ./vcpkg ]; then
+            git clone https://github.com/microsoft/vcpkg.git
+            ./vcpkg/bootstrap-vcpkg.sh
+          fi
+          echo "VCPKG_ROOT=${{ github.workspace }}/vcpkg" >> $GITHUB_ENV
+        shell: bash
+
+      - name: Configure CMake
+        run: |
+          cmake -B build-${{ matrix.triplet }}-${{ matrix.config }} \
+            -G Ninja \
+            -DCMAKE_TOOLCHAIN_FILE="${{ env.VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake" \
+            -DVCPKG_TARGET_TRIPLET=${{ matrix.triplet }} \
+            -DCMAKE_BUILD_TYPE=${{ matrix.config }} \
+            -DAG_TRIPLE=${{ matrix.triplet }}
+        shell: bash
+
+      - name: Build
+        run: cmake --build build-${{ matrix.triplet }}-${{ matrix.config }} --parallel
+        shell: bash
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ffi-${{ matrix.triplet }}-${{ matrix.config }}
+          path: |
+            build-${{ matrix.triplet }}-${{ matrix.config }}/out/**/*
+
+  build-macos:
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        triplet: [ x64-osx, arm64-osx, arm64-ios, x64-ios ]
+        config: [ Release, Debug ]
+    steps:
+      - name: Checkout repository with submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Setup vcpkg
+        uses: lukka/get-cmake@latest
+        with:
+          cmakeVersion: "3.28"
+          ninjaVersion: "1.12.1"
+
+      - name: Cache vcpkg
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ github.workspace }}/vcpkg
+            ${{ github.workspace }}/vcpkg_installed
+          key: vcpkg-${{ matrix.triplet }}-${{ hashFiles('vcpkg.json') }}
+          restore-keys: vcpkg-${{ matrix.triplet }}-
+
+      - name: Setup vcpkg environment
+        run: |
+          if [ ! -d ./vcpkg ]; then
+            git clone https://github.com/microsoft/vcpkg.git
+            ./vcpkg/bootstrap-vcpkg.sh
+          fi
+          echo "VCPKG_ROOT=${{ github.workspace }}/vcpkg" >> $GITHUB_ENV
+        shell: bash
+
+      - name: Configure CMake
+        run: |
+          cmake -B build-${{ matrix.triplet }}-${{ matrix.config }} \
+            -G Ninja \
+            -DCMAKE_TOOLCHAIN_FILE="${{ env.VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake" \
+            -DVCPKG_TARGET_TRIPLET=${{ matrix.triplet }} \
+            -DCMAKE_BUILD_TYPE=${{ matrix.config }} \
+            -DAG_TRIPLE=${{ matrix.triplet }}
+        shell: bash
+
+      - name: Build
+        run: cmake --build build-${{ matrix.triplet }}-${{ matrix.config }} --parallel
+        shell: bash
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ffi-${{ matrix.triplet }}-${{ matrix.config }}
+          path: |
+            build-${{ matrix.triplet }}-${{ matrix.config }}/out/**/*
+
+  build-android:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        triplet: [ arm64-android, x64-android ]
+        config: [ Release, Debug ]
+    steps:
+      - name: Checkout repository with submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Setup vcpkg
+        uses: lukka/get-cmake@latest
+        with:
+          cmakeVersion: "3.28"
+          ninjaVersion: "1.12.1"
+
+      - name: Cache vcpkg
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ github.workspace }}/vcpkg
+            ${{ github.workspace }}/vcpkg_installed
+          key: vcpkg-${{ matrix.triplet }}-${{ hashFiles('vcpkg.json') }}
+          restore-keys: vcpkg-${{ matrix.triplet }}-
+
+      - name: Setup Android NDK
+        uses: android-actions/setup-android@v3
+        with:
+          ndk-version: '26.1.10909125'
+
+      - name: Setup vcpkg environment
+        run: |
+          if [ ! -d ./vcpkg ]; then
+            git clone https://github.com/microsoft/vcpkg.git
+            ./vcpkg/bootstrap-vcpkg.sh
+          fi
+          echo "VCPKG_ROOT=${{ github.workspace }}/vcpkg" >> $GITHUB_ENV
+          echo "ANDROID_NDK_HOME=${{ env.ANDROID_HOME }}/ndk/26.1.10909125" >> $GITHUB_ENV
+        shell: bash
+
+      - name: Configure CMake
+        run: |
+          cmake -B build-${{ matrix.triplet }}-${{ matrix.config }} \
+            -G Ninja \
+            -DCMAKE_TOOLCHAIN_FILE="${{ env.VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake" \
+            -DVCPKG_TARGET_TRIPLET=${{ matrix.triplet }} \
+            -DCMAKE_BUILD_TYPE=${{ matrix.config }} \
+            -DAG_TRIPLE=${{ matrix.triplet }}
+        shell: bash
+
+      - name: Build
+        run: cmake --build build-${{ matrix.triplet }}-${{ matrix.config }} --parallel
+        shell: bash
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ffi-${{ matrix.triplet }}-${{ matrix.config }}
+          path: |
+            build-${{ matrix.triplet }}-${{ matrix.config }}/out/**/*
+
+  assemble-and-release:
+    runs-on: ubuntu-latest
+    needs: [build-windows, build-linux, build-macos, build-android]
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Assemble directory structure
+        run: |
+          mkdir -p ffi
+          for artifact_dir in artifacts/ffi-*; do
+            if [ -d "$artifact_dir" ]; do
+              name=$(basename "$artifact_dir")
+              triplet="${name#ffi-}"
+              triplet="${triplet%-*}"
+              config="${name##*-}"
+              cp -r "$artifact_dir/out/"* "ffi/" || true
+            fi
+          done
+
+      - name: Build zip for each module
+        run: |
+          for module in sqliteFfi skiaFfi; do
+            zip -r "${module}-${GITHUB_REF_NAME}.zip" ffi/${module}
+          done
+
+      - name: Upload zipped artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ffi-zip
+          path: "*.zip"
+
+      - name: Create GitHub release and upload asset
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ffi ${{ github.ref_name }}
+          generate_release_notes: true
+          files: "*.zip"
