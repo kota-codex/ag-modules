@@ -1,4 +1,0 @@
-[submodule "external/sqliteFfi"]
-	path = external/sqliteFfi
-	url = https://github.com/kota-codex/sqlite-bindings.git
- 	branch = main
