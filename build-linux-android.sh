@@ -10,15 +10,15 @@ git submodule update --init --recursive
 # Collect external modules
 MODULES=$(find external -maxdepth 1 -mindepth 1 -type d -printf "%f\n")
 
-# Triples as list of lists: triple;arch
+# Triples: triple;arch
 TRIPLES=(
   "x64-linux;x86_64"
   "arm64-linux;arm64"
   "x64-android;x86_64"
   "arm64-android;arm64-v8a"
 )
-
 CONFIGS=(Release Debug)
+
 GENERATOR="Ninja"
 
 for module in $MODULES; do
@@ -26,8 +26,8 @@ for module in $MODULES; do
     IFS=";" read -r triple arch <<< "$tripleEntry"
 
     for config in "${CONFIGS[@]}"; do
-      BUILD_DIR="build/${module}-${triple}-${config}"
-      OUT_DIR="../../out/${module}"  # relative to build dir
+      BUILD_DIR="build"
+      OUT_DIR="../out/${module}"  # relative to build dir
       echo "Building module ${module} for triple: ${triple}, config: ${config} in ${BUILD_DIR}"
       mkdir -p "${BUILD_DIR}"
 

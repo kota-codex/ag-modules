@@ -23,8 +23,8 @@ call %VS_VCVARSALL% x64
 for %%m in (%MODULES%) do (
     for %%t in (%TRIPLES%) do (
         for %%c in (%CONFIGS%) do (
-            set BUILD_DIR=build\%%m-%%t-%%c
-            set OUT_DIR=..\..\out\%%m
+            set BUILD_DIR=build
+            set OUT_DIR=..\out\%%m
 
             echo Building module %%m for triple %%t, config %%c in !BUILD_DIR!
             if not exist "!BUILD_DIR!" mkdir "!BUILD_DIR!"
