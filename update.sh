@@ -1,4 +1,5 @@
 # Recursively clones  or fetches "submodules" from repo.txt into extern/
+mkdir -p extern
 while read -r url; do
     [ -z "$url" ] && continue
     name=$(basename "$url" .git)
