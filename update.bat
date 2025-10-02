@@ -1,30 +1,29 @@
-@echo off
+@echo on
 setlocal enabledelayedexpansion
 
-set BASE_DIR=extern
+set "BASE_DIR=extern"
 
 if not exist "%BASE_DIR%" mkdir "%BASE_DIR%"
 
-for /f "usebackq tokens=*" %%u in (repos.txt) do (
+for /f "usebackq delims=" %%u in ("repos.txt") do (
     set "url=%%u"
     if not "!url!"=="" (
         for %%i in ("!url!") do set "name=%%~ni"
-        set "path=%BASE_DIR%\!name!"
-
-        if exist "!path!\.git" (
-            echo Fetching !name!...
-            pushd "!path!"
+        set "p=%BASE_DIR%\!name!"
+        if exist "!p!\.git" (
+            echo fetching !p!...
+            pushd "!p!" >nul
             git fetch
-            popd
+            popd >nul
         ) else (
-            echo Cloning !url! -> !path!
-            git clone "!url!" "!path!"
+            echo cloning !p!...
+            git clone "!url!" "!p!"
         )
-        if exist "!path!\update.bat" (
+        if exist "!p!\update.bat" (
             echo Recursively updating !name!
-            pushd "!path!"
+            pushd "!p!" >nul
             call update.bat
-            popd
+            popd >nul
         )
     )
 )
