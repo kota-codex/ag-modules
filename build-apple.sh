@@ -25,8 +25,8 @@ for module in $MODULES; do
     IFS=";" read -r triple arch sysroot <<< "$tripleEntry"
 
     for config in "${CONFIGS[@]}"; do
-      BUILD_DIR="build"
-      OUT_DIR="../out/${module}"  # relative to build dir
+      BUILD_DIR="build/${triple}"
+      OUT_DIR="../../out/${module}"  # relative to build dir
       echo "Building module ${module} for triple: ${triple}, config: ${config} in ${BUILD_DIR}"
       mkdir -p "${BUILD_DIR}"
 
