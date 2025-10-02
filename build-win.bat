@@ -12,7 +12,7 @@ set TRIPLES=x64-windows
 set CONFIGS=Release Debug
 
 set MODULES=
-for /d %%d in (external\*) do (
+for /d %%d in (extern\*) do (
     set MODULES=!MODULES! %%~nd
 )
 
@@ -37,7 +37,7 @@ for %%t in (%TRIPLES%) do (
         for %%c in (%CONFIGS%) do (
             echo Building module %%m for triple %%t, config %%c in !BUILD_DIR!
 
-            cmake -S "external\%%m" -B "!BUILD_DIR!" -G "%GENERATOR%" ^
+            cmake -S "extern\%%m" -B "!BUILD_DIR!" -G "%GENERATOR%" ^
                 -DCMAKE_TOOLCHAIN_FILE="%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake" ^
                 -DVCPKG_TARGET_TRIPLET=%%t ^
                 -DCMAKE_BUILD_TYPE=%%c ^

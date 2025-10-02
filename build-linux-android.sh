@@ -7,8 +7,8 @@ git submodule update --init --recursive
 : "${VCPKG_ROOT:?Error: VCPKG_ROOT must be set to your vcpkg installation path}"
 : "${ANDROID_NDK_HOME:=}"  # Required for Android builds
 
-# Collect external modules
-MODULES=$(find external -maxdepth 1 -mindepth 1 -type d -printf "%f\n")
+# Collect extern modules
+MODULES=$(find extern -maxdepth 1 -mindepth 1 -type d -printf "%f\n")
 
 # Triples: triple;arch
 TRIPLES=(
@@ -32,7 +32,7 @@ for module in $MODULES; do
       mkdir -p "${BUILD_DIR}"
 
       CMAKE_ARGS=(
-        -S "external/${module}"
+        -S "extern/${module}"
         -B "${BUILD_DIR}"
         -G "${GENERATOR}"
         -DCMAKE_TOOLCHAIN_FILE="${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"

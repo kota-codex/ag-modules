@@ -6,8 +6,8 @@ git submodule update --init --recursive
 
 : "${VCPKG_ROOT:?Error: VCPKG_ROOT must be set to your vcpkg installation path}"
 
-# Collect external modules
-MODULES=$(find external -maxdepth 1 -mindepth 1 -type d -printf "%f\n")
+# Collect extern modules
+MODULES=$(find extern -maxdepth 1 -mindepth 1 -type d -printf "%f\n")
 
 # Triples as: triple;arch;sysroot
 TRIPLES=(
